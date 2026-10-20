@@ -1,0 +1,22 @@
+name: simulation test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  sim-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image (ROS 2 Jazzy + Gazebo Harmonic + package)
+        run: docker build -t ros2-sim-test .
+
+      - name: Run the regression test headless
+        run: |
+          docker run --rm ros2-sim-test bash -c '
+            source /opt/ros/jazzy/setup.bash && source /ws/install/setup.bash
+            colcon test --packages-select sim_test --event-handlers console_direct+
+            colcon test-result --verbose'
